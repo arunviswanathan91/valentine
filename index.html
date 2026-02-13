@@ -3,106 +3,266 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Will You Be My Valentine? 💕</title>
-
-    <!-- Cute romantic fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600;700&display=swap"
         rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <link rel="stylesheet" href="style.css">
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #e6f3ff 50%, #fff5f0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .card {
+            background: white;
+            padding: 60px 50px;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(255, 182, 193, 0.35);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            color: #ffb3d9;
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .highlight {
+            color: #d4bfff;
+            font-size: 3.5rem;
+        }
+
+        p {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        #yes-btn {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+            color: white;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        #no-btn {
+            background: white;
+            color: #666;
+            position: fixed;
+            transition: all 0.3s ease-out;
+        }
+
+        #no-btn.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        #success-card {
+            display: none;
+        }
+
+        #success-card.show {
+            display: block;
+        }
+
+        .success-title {
+            font-size: 4rem;
+            color: #ffb3d9;
+            margin: 20px 0;
+        }
+
+        .emoji-reaction {
+            position: fixed;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffb3d9;
+            pointer-events: none;
+            animation: float-up 2s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Canvas for starfield and particles -->
-    <canvas id="background-canvas"></canvas>
-
-    <!-- Cute cartoon eyes that follow mouse -->
-    <div class="background-eyes">
-        <div class="eye eye-left">
-            <div class="eye-white"></div>
-            <div class="eye-pupil"></div>
-        </div>
-        <div class="eye eye-right">
-            <div class="eye-white"></div>
-            <div class="eye-pupil"></div>
-        </div>
-    </div>
-
-    <!-- Floating hearts -->
-    <div class="floating-hearts">
-        <div class="heart" style="--delay: 0s; --x: 10vw"></div>
-        <div class="heart" style="--delay: 2s; --x: 25vw"></div>
-        <div class="heart" style="--delay: 4s; --x: 45vw"></div>
-        <div class="heart" style="--delay: 1s; --x: 60vw"></div>
-        <div class="heart" style="--delay: 3s; --x: 75vw"></div>
-        <div class="heart" style="--delay: 5s; --x: 90vw"></div>
-    </div>
-
-    <!-- Emoji reactions container -->
-    <div id="emoji-reactions"></div>
-
-    <!-- Main question card -->
     <div id="question-card" class="card">
-        <div class="sparkle sparkle-1">✨</div>
-        <div class="sparkle sparkle-2">💫</div>
-        <div class="sparkle sparkle-3">⭐</div>
-
-        <h1 class="question-text">
+        <h1>
             Will you be my<br>
             <span class="highlight">Valentine?</span>
         </h1>
-
-        <p class="subtext">For my special alien Ari 👽💕</p>
-
+        <p>For my special alien Ari 👽💕</p>
         <div class="buttons">
-            <button id="yes-btn" class="btn btn-yes">
-                <span class="btn-text">YES! 😍</span>
-                <span class="btn-glow"></span>
-            </button>
-
-            <button id="no-btn" class="btn btn-no">
-                <span class="btn-text">No...</span>
-            </button>
+            <button id="yes-btn">YES! 😍</button>
+            <button id="no-btn">No...</button>
         </div>
     </div>
 
-    <!-- Success celebration card -->
     <div id="success-card" class="card hidden">
-        <div class="celebration-icon">🎉</div>
-
-        <h1 class="success-title">
-            YAY!!! 💕
-        </h1>
-
-        <p class="success-text">
-            I knew you'd say yes! 🥰<br>
-            You're the best boyfriend in the universe! 🌍→🪐
-        </p>
-
-        <div class="heart-burst">
-            <span>💖</span>
-            <span>💗</span>
-            <span>💕</span>
-            <span>💓</span>
-            <span>💝</span>
-        </div>
+        <h1 class="success-title">YAY!!! 💕</h1>
+        <p>I knew you'd say yes! 🥰<br>You're the best boyfriend in the universe! 🌍→🪐</p>
     </div>
 
-    <!-- Theme controls -->
-    <div class="controls">
-        <button id="music-toggle" class="control-btn" title="Toggle music" aria-label="Toggle background music">
-            🎵
-        </button>
-        <button id="effects-toggle" class="control-btn" title="Toggle effects" aria-label="Toggle visual effects">
-            ✨
-        </button>
-    </div>
+    <div id="emoji-reactions"></div>
 
-    <!-- Load main script -->
-    <script src="script.js"></script>
+    <script>
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        const questionCard = document.getElementById('question-card');
+        const successCard = document.getElementById('success-card');
+        const emojiContainer = document.getElementById('emoji-reactions');
+
+        let yesScale = 1;
+        let mouseX = 0, mouseY = 0;
+
+        const emojiReactions = [
+            "nope! 😜", "hehe 😆", "not today! 🙈", "try again! 😂",
+            "almost! 😝", "so close! 🤭", "nice try! 😁", "nuh-uh! 🙅"
+        ];
+
+        // Track mouse
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            checkProximity();
+        });
+
+        // Check if mouse is near NO button
+        function checkProximity() {
+            const rect = noBtn.getBoundingClientRect();
+            const btnX = rect.left + rect.width / 2;
+            const btnY = rect.top + rect.height / 2;
+            const distance = Math.sqrt(Math.pow(mouseX - btnX, 2) + Math.pow(mouseY - btnY, 2));
+
+            if (distance < 120) {
+                moveButtonAway();
+            }
+        }
+
+        // Move NO button away
+        function moveButtonAway() {
+            // Show emoji
+            const emoji = document.createElement('div');
+            emoji.className = 'emoji-reaction';
+            emoji.textContent = emojiReactions[Math.floor(Math.random() * emojiReactions.length)];
+            const rect = noBtn.getBoundingClientRect();
+            emoji.style.left = rect.left + rect.width / 2 + 'px';
+            emoji.style.top = rect.top - 30 + 'px';
+            emojiContainer.appendChild(emoji);
+            setTimeout(() => emoji.remove(), 2000);
+
+            // Shake button
+            noBtn.classList.add('shake');
+            setTimeout(() => noBtn.classList.remove('shake'), 500);
+
+            // Grow YES button
+            yesScale = Math.min(yesScale + 0.15, 2.5);
+            yesBtn.style.transform = `scale(${yesScale})`;
+
+            // Move to random position
+            const margin = 60;
+            const newX = margin + Math.random() * (window.innerWidth - margin * 2 - rect.width);
+            const newY = margin + Math.random() * (window.innerHeight - margin * 2 - rect.height);
+
+            noBtn.style.left = newX + 'px';
+            noBtn.style.top = newY + 'px';
+        }
+
+        // YES button click
+        yesBtn.addEventListener('click', () => {
+            questionCard.classList.add('hidden');
+            successCard.classList.remove('hidden');
+        });
+
+        // Touch support
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveButtonAway();
+        });
+    </script>
 </body>
 
 </html>
