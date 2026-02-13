@@ -465,19 +465,39 @@
 
             const dx = btnCenterX - mouseX;
             const dy = btnCenterY - mouseY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
 
-            const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.5;
-            const moveDistance = 200 + Math.random() * 100;
+            const angle = Math.atan2(dy, dx);
+            const moveDistance = 250 + Math.random() * 150;
 
-            const margin = 60;
+            // Calculate ideal target
+            let targetX = btnCenterX + Math.cos(angle) * moveDistance;
+            let targetY = btnCenterY + Math.sin(angle) * moveDistance;
+
+            // CHECK IF CORNERED - escape toward center!
+            const cornerThreshold = 150;
+            const isNearLeft = btnCenterX < cornerThreshold;
+            const isNearRight = btnCenterX > window.innerWidth - cornerThreshold;
+            const isNearTop = btnCenterY < cornerThreshold;
+            const isNearBottom = btnCenterY > window.innerHeight - cornerThreshold;
+
+            // If in a corner, escape to center of screen
+            if ((isNearLeft || isNearRight) && (isNearTop || isNearBottom)) {
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const escapeAngle = Math.atan2(centerY - btnCenterY, centerX - btnCenterX);
+                targetX = btnCenterX + Math.cos(escapeAngle) * 350;
+                targetY = btnCenterY + Math.sin(escapeAngle) * 350;
+            }
+
+            // Apply boundaries
+            const margin = 100;
             noBtnTargetX = Math.max(margin, Math.min(
                 window.innerWidth - margin - rect.width,
-                btnCenterX + Math.cos(angle) * moveDistance
+                targetX
             ));
             noBtnTargetY = Math.max(margin, Math.min(
                 window.innerHeight - margin - rect.height,
-                btnCenterY + Math.sin(angle) * moveDistance
+                targetY
             ));
         }
 
