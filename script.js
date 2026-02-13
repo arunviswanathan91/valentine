@@ -17,52 +17,112 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     let yesScale = 1;
+    let mouseX = 0;
+    let mouseY = 0;
+    let noBtnX = 0;
+    let noBtnY = 0;
+    let messageIndex = 0;
 
     // Initial setup for background hearts
     createFloatingHearts();
 
-    // Movement logic for "No" button
-    noBtn.addEventListener('mouseover', moveButton);
-    noBtn.addEventListener('touchstart', moveButton);
+    // Set initial position for No button (fixed from start)
+    function initializeNoButton() {
+        noBtn.style.position = 'fixed';
+        const rect = noBtn.getBoundingClientRect();
+        noBtnX = rect.left;
+        noBtnY = rect.top;
+        noBtn.style.left = `${noBtnX}px`;
+        noBtn.style.top = `${noBtnY}px`;
+    }
 
-    function moveButton() {
-        // Change text
-        const randomMsg = noMessages[Math.floor(Math.random() * noMessages.length)];
-        noBtn.innerText = randomMsg;
+    initializeNoButton();
+
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        checkProximityAndMove();
+    });
+
+    // Also handle touch for mobile
+    document.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        mouseX = touch.clientX;
+        mouseY = touch.clientY;
+        checkProximityAndMove();
+    });
+
+    function checkProximityAndMove() {
+        const rect = noBtn.getBoundingClientRect();
+        const btnCenterX = rect.left + rect.width / 2;
+        const btnCenterY = rect.top + rect.height / 2;
+
+        // Calculate distance from mouse to button center
+        const distance = Math.sqrt(
+            Math.pow(mouseX - btnCenterX, 2) +
+            Math.pow(mouseY - btnCenterY, 2)
+        );
+
+        // If mouse is within 150px, move the button away
+        if (distance < 150) {
+            moveButtonAway();
+        }
+    }
+
+    function moveButtonAway() {
+        // Change the message
+        messageIndex = (messageIndex + 1) % noMessages.length;
+        noBtn.innerText = noMessages[messageIndex];
 
         // Grow Yes button
         yesScale += 0.15;
         yesBtn.style.transform = `scale(${yesScale})`;
 
-        // Calculate movement - SECURE BOUNDS
+        // Get current button dimensions (after text change)
+        const rect = noBtn.getBoundingClientRect();
+        const btnWidth = rect.width;
+        const btnHeight = rect.height;
+
+        // Get viewport dimensions
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
 
-        // Force a layout update to get correct new size after text change
-        const btnRect = noBtn.getBoundingClientRect();
-        const btnWidth = btnRect.width;
-        const btnHeight = btnRect.height;
+        // Calculate direction away from mouse
+        const btnCenterX = rect.left + rect.width / 2;
+        const btnCenterY = rect.top + rect.height / 2;
+        const angle = Math.atan2(btnCenterY - mouseY, btnCenterX - mouseX);
 
-        // Safety margin to ensure it stays well within screen
-        const margin = 20;
+        // Move 200px away from mouse
+        const moveDistance = 200;
+        let newCenterX = btnCenterX + Math.cos(angle) * moveDistance;
+        let newCenterY = btnCenterY + Math.sin(angle) * moveDistance;
 
-        // Calculate max allowed positions
+        // Convert from center coordinates to top-left coordinates
+        let newX = newCenterX - btnWidth / 2;
+        let newY = newCenterY - btnHeight / 2;
+
+        // Add some randomness to make it less predictable
+        newX += (Math.random() - 0.5) * 100;
+        newY += (Math.random() - 0.5) * 100;
+
+        // STRICT boundary enforcement
+        const margin = 10;
+        const minX = margin;
+        const minY = margin;
         const maxX = viewportWidth - btnWidth - margin;
         const maxY = viewportHeight - btnHeight - margin;
 
-        // Generate random position within safe bounds
-        // Math.max(margin, ...) ensures it doesn't go below the top-left margin
-        let newX = Math.random() * (maxX - margin) + margin;
-        let newY = Math.random() * (maxY - margin) + margin;
+        // Clamp to bounds
+        newX = Math.max(minX, Math.min(newX, maxX));
+        newY = Math.max(minY, Math.min(newY, maxY));
 
-        // Clamp values just in case
-        newX = Math.min(Math.max(newX, margin), maxX);
-        newY = Math.min(Math.max(newY, margin), maxY);
-
-        noBtn.style.position = 'fixed';
+        // Apply the new position
+        noBtnX = newX;
+        noBtnY = newY;
         noBtn.style.left = `${newX}px`;
         noBtn.style.top = `${newY}px`;
-        noBtn.style.zIndex = '1000'; // Always on top
+        noBtn.style.transition = 'left 0.3s ease, top 0.3s ease';
     }
 
     // Success logic
@@ -70,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
         questionContainer.classList.add('hidden');
         successContainer.classList.remove('hidden');
         createConfetti();
-        // Reset scale for layout
         yesBtn.style.transform = 'scale(1)';
     });
 
