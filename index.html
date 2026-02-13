@@ -32,6 +32,8 @@
             text-align: center;
             max-width: 500px;
             width: 90%;
+            position: relative;
+            z-index: 10;
         }
 
         h1 {
@@ -69,12 +71,19 @@
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
         }
 
         #yes-btn {
             background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
             color: white;
             animation: heartbeat 1.5s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        #yes-btn:hover {
+            transform: scale(1.1);
         }
 
         @keyframes heartbeat {
@@ -93,7 +102,8 @@
             background: white;
             color: #666;
             position: fixed;
-            transition: all 0.3s ease-out;
+            z-index: 1;
+            /* Position will be set by JS */
         }
 
         #no-btn.shake {
@@ -137,8 +147,18 @@
             margin: 20px 0;
         }
 
-        .emoji-reaction {
+        #emoji-reactions {
             position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .emoji-reaction {
+            position: absolute;
             font-size: 1.2rem;
             font-weight: bold;
             color: #ffb3d9;
@@ -148,22 +168,38 @@
 
         @keyframes float-up {
             0% {
-                transform: translateY(0);
+                transform: translateY(0) scale(0.5);
                 opacity: 0;
             }
 
             20% {
+                transform: translateY(-10px) scale(1.2);
                 opacity: 1;
             }
 
             100% {
-                transform: translateY(-50px);
+                transform: translateY(-50px) scale(0.8);
                 opacity: 0;
             }
         }
 
         .hidden {
             display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .highlight {
+                font-size: 2.5rem;
+            }
+
+            button {
+                font-size: 1.1rem;
+                padding: 14px 30px;
+            }
         }
     </style>
 </head>
@@ -196,30 +232,82 @@
         const emojiContainer = document.getElementById('emoji-reactions');
 
         let yesScale = 1;
-        let mouseX = 0, mouseY = 0;
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        // NO button physics state
+        let noBtnX = 0;
+        let noBtnY = 0;
+        let noBtnVelX = 0;
+        let noBtnVelY = 0;
+        let noBtnTargetX = 0;
+        let noBtnTargetY = 0;
 
         const emojiReactions = [
             "nope! 😜", "hehe 😆", "not today! 🙈", "try again! 😂",
             "almost! 😝", "so close! 🤭", "nice try! 😁", "nuh-uh! 🙅"
         ];
 
+        // Initialize button position properly
+        function initButtonPosition() {
+            // Wait for layout to be ready
+            setTimeout(() => {
+                const rect = noBtn.getBoundingClientRect();
+                const cardRect = questionCard.getBoundingClientRect();
+
+                // Position to the right of YES button initially
+                noBtnX = cardRect.right - 150;
+                noBtnY = cardRect.bottom - 80;
+                noBtnTargetX = noBtnX;
+                noBtnTargetY = noBtnY;
+
+                noBtn.style.left = noBtnX + 'px';
+                noBtn.style.top = noBtnY + 'px';
+            }, 100);
+        }
+
         // Track mouse
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
-            checkProximity();
         });
 
-        // Check if mouse is near NO button
-        function checkProximity() {
+        // Physics-based smooth movement
+        function updateButtonPosition() {
+            // Spring physics for smooth motion
+            const stiffness = 0.15;
+            const damping = 0.75;
+
+            // Calculate forces
+            const forceX = (noBtnTargetX - noBtnX) * stiffness;
+            const forceY = (noBtnTargetY - noBtnY) * stiffness;
+
+            // Update velocity
+            noBtnVelX = (noBtnVelX + forceX) * damping;
+            noBtnVelY = (noBtnVelY + forceY) * damping;
+
+            // Update position
+            noBtnX += noBtnVelX;
+            noBtnY += noBtnVelY;
+
+            // Apply to DOM
+            noBtn.style.left = noBtnX + 'px';
+            noBtn.style.top = noBtnY + 'px';
+
+            // Check proximity to mouse
             const rect = noBtn.getBoundingClientRect();
-            const btnX = rect.left + rect.width / 2;
-            const btnY = rect.top + rect.height / 2;
-            const distance = Math.sqrt(Math.pow(mouseX - btnX, 2) + Math.pow(mouseY - btnY, 2));
+            const btnCenterX = rect.left + rect.width / 2;
+            const btnCenterY = rect.top + rect.height / 2;
+            const distance = Math.sqrt(
+                Math.pow(mouseX - btnCenterX, 2) +
+                Math.pow(mouseY - btnCenterY, 2)
+            );
 
             if (distance < 120) {
                 moveButtonAway();
             }
+
+            requestAnimationFrame(updateButtonPosition);
         }
 
         // Move NO button away
@@ -229,8 +317,8 @@
             emoji.className = 'emoji-reaction';
             emoji.textContent = emojiReactions[Math.floor(Math.random() * emojiReactions.length)];
             const rect = noBtn.getBoundingClientRect();
-            emoji.style.left = rect.left + rect.width / 2 + 'px';
-            emoji.style.top = rect.top - 30 + 'px';
+            emoji.style.left = (rect.left + rect.width / 2) + 'px';
+            emoji.style.top = (rect.top - 30) + 'px';
             emojiContainer.appendChild(emoji);
             setTimeout(() => emoji.remove(), 2000);
 
@@ -238,17 +326,33 @@
             noBtn.classList.add('shake');
             setTimeout(() => noBtn.classList.remove('shake'), 500);
 
-            // Grow YES button
+            // Grow YES button (capped at 2.5x)
             yesScale = Math.min(yesScale + 0.15, 2.5);
             yesBtn.style.transform = `scale(${yesScale})`;
 
-            // Move to random position
-            const margin = 60;
-            const newX = margin + Math.random() * (window.innerWidth - margin * 2 - rect.width);
-            const newY = margin + Math.random() * (window.innerHeight - margin * 2 - rect.height);
+            // Calculate new target position away from mouse
+            const rect = noBtn.getBoundingClientRect();
+            const btnCenterX = rect.left + rect.width / 2;
+            const btnCenterY = rect.top + rect.height / 2;
 
-            noBtn.style.left = newX + 'px';
-            noBtn.style.top = newY + 'px';
+            // Vector from mouse to button
+            const dx = btnCenterX - mouseX;
+            const dy = btnCenterY - mouseY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Move in opposite direction with some randomness
+            const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.5;
+            const moveDistance = 200 + Math.random() * 100;
+
+            const margin = 60;
+            noBtnTargetX = Math.max(margin, Math.min(
+                window.innerWidth - margin - rect.width,
+                btnCenterX + Math.cos(angle) * moveDistance
+            ));
+            noBtnTargetY = Math.max(margin, Math.min(
+                window.innerHeight - margin - rect.height,
+                btnCenterY + Math.sin(angle) * moveDistance
+            ));
         }
 
         // YES button click
@@ -261,6 +365,12 @@
         noBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             moveButtonAway();
+        });
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initButtonPosition();
+            requestAnimationFrame(updateButtonPosition);
         });
     </script>
 </body>
