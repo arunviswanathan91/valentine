@@ -103,7 +103,6 @@
             color: #666;
             position: fixed;
             z-index: 1;
-            /* Position will be set by JS */
         }
 
         #no-btn.shake {
@@ -133,18 +132,118 @@
             }
         }
 
+        /* SUCCESS CARD ANIMATIONS */
         #success-card {
             display: none;
+            animation: cardAppear 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
         #success-card.show {
             display: block;
         }
 
+        @keyframes cardAppear {
+            0% {
+                transform: scale(0) rotate(-10deg);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
         .success-title {
             font-size: 4rem;
             color: #ffb3d9;
             margin: 20px 0;
+            animation: successBounce 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        @keyframes successBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-message {
+            font-size: 1.4rem;
+            color: #555;
+            line-height: 1.8;
+            margin: 20px 0;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .heart-burst {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-top: 30px;
+        }
+
+        .heart-burst span {
+            display: inline-block;
+            animation: heartPop 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
+        }
+
+        .heart-burst span:nth-child(1) {
+            animation-delay: 0.5s;
+        }
+
+        .heart-burst span:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+
+        .heart-burst span:nth-child(3) {
+            animation-delay: 0.7s;
+        }
+
+        .heart-burst span:nth-child(4) {
+            animation-delay: 0.8s;
+        }
+
+        .heart-burst span:nth-child(5) {
+            animation-delay: 0.9s;
+        }
+
+        @keyframes heartPop {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
         }
 
         #emoji-reactions {
@@ -159,26 +258,29 @@
 
         .emoji-reaction {
             position: absolute;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #ffb3d9;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ff6b9d;
+            text-shadow:
+                2px 2px 4px rgba(0, 0, 0, 0.3),
+                0 0 10px rgba(255, 107, 157, 0.5);
             pointer-events: none;
-            animation: float-up 2s ease-out forwards;
+            animation: float-up 1.5s ease-out forwards;
         }
 
         @keyframes float-up {
             0% {
-                transform: translateY(0) scale(0.5);
+                transform: translateY(0) scale(0.3);
                 opacity: 0;
             }
 
             20% {
-                transform: translateY(-10px) scale(1.2);
+                transform: translateY(-15px) scale(1.3);
                 opacity: 1;
             }
 
             100% {
-                transform: translateY(-50px) scale(0.8);
+                transform: translateY(-80px) scale(1);
                 opacity: 0;
             }
         }
@@ -200,6 +302,14 @@
                 font-size: 1.1rem;
                 padding: 14px 30px;
             }
+
+            .success-title {
+                font-size: 3rem;
+            }
+
+            .emoji-reaction {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -219,7 +329,16 @@
 
     <div id="success-card" class="card hidden">
         <h1 class="success-title">YAY!!! 💕</h1>
-        <p>I knew you'd say yes! 🥰<br>You're the best boyfriend in the universe! 🌍→🪐</p>
+        <p class="success-message" id="success-text">
+            <!-- Will be filled by JS -->
+        </p>
+        <div class="heart-burst">
+            <span>💖</span>
+            <span>💗</span>
+            <span>💕</span>
+            <span>💓</span>
+            <span>💝</span>
+        </div>
     </div>
 
     <div id="emoji-reactions"></div>
@@ -230,10 +349,12 @@
         const questionCard = document.getElementById('question-card');
         const successCard = document.getElementById('success-card');
         const emojiContainer = document.getElementById('emoji-reactions');
+        const successText = document.getElementById('success-text');
 
         let yesScale = 1;
         let mouseX = window.innerWidth / 2;
         let mouseY = window.innerHeight / 2;
+        let lastEmojiTime = 0; // Prevent emoji spam
 
         // NO button physics state
         let noBtnX = 0;
@@ -245,17 +366,23 @@
 
         const emojiReactions = [
             "nope! 😜", "hehe 😆", "not today! 🙈", "try again! 😂",
-            "almost! 😝", "so close! 🤭", "nice try! 😁", "nuh-uh! 🙅"
+            "almost! 😝", "so close! 🤭", "nice try! 😁", "catch me! 🏃"
         ];
 
-        // Initialize button position properly
+        const successMessages = [
+            "I knew you'd say yes! 🥰<br>You make my heart skip a beat every single day! 💓",
+            "Of course you said yes! 😘<br>You're the best thing that's ever happened to me! 🌟",
+            "YAY! I love you so much! 💕<br>Can't wait to spend Valentine's with you! 🎉",
+            "I knew it! 🥳<br>You're my favorite person in the whole universe! 🌍✨",
+            "Best decision ever! 💖<br>Forever grateful you're mine! 🌹"
+        ];
+
+        // Initialize button position
         function initButtonPosition() {
-            // Wait for layout to be ready
             setTimeout(() => {
                 const rect = noBtn.getBoundingClientRect();
                 const cardRect = questionCard.getBoundingClientRect();
 
-                // Position to the right of YES button initially
                 noBtnX = cardRect.right - 150;
                 noBtnY = cardRect.bottom - 80;
                 noBtnTargetX = noBtnX;
@@ -274,27 +401,22 @@
 
         // Physics-based smooth movement
         function updateButtonPosition() {
-            // Spring physics for smooth motion
             const stiffness = 0.15;
             const damping = 0.75;
 
-            // Calculate forces
             const forceX = (noBtnTargetX - noBtnX) * stiffness;
             const forceY = (noBtnTargetY - noBtnY) * stiffness;
 
-            // Update velocity
             noBtnVelX = (noBtnVelX + forceX) * damping;
             noBtnVelY = (noBtnVelY + forceY) * damping;
 
-            // Update position
             noBtnX += noBtnVelX;
             noBtnY += noBtnVelY;
 
-            // Apply to DOM
             noBtn.style.left = noBtnX + 'px';
             noBtn.style.top = noBtnY + 'px';
 
-            // Check proximity to mouse
+            // Check proximity
             const rect = noBtn.getBoundingClientRect();
             const btnCenterX = rect.left + rect.width / 2;
             const btnCenterY = rect.top + rect.height / 2;
@@ -312,35 +434,39 @@
 
         // Move NO button away
         function moveButtonAway() {
-            // Show emoji
-            const emoji = document.createElement('div');
-            emoji.className = 'emoji-reaction';
-            emoji.textContent = emojiReactions[Math.floor(Math.random() * emojiReactions.length)];
-            const rect = noBtn.getBoundingClientRect();
-            emoji.style.left = (rect.left + rect.width / 2) + 'px';
-            emoji.style.top = (rect.top - 30) + 'px';
-            emojiContainer.appendChild(emoji);
-            setTimeout(() => emoji.remove(), 2000);
+            const now = Date.now();
+
+            // Show emoji only if 800ms passed (reduce spam)
+            if (now - lastEmojiTime > 800) {
+                lastEmojiTime = now;
+
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji-reaction';
+                emoji.textContent = emojiReactions[Math.floor(Math.random() * emojiReactions.length)];
+                const rect = noBtn.getBoundingClientRect();
+                emoji.style.left = (rect.left + rect.width / 2 - 30) + 'px';
+                emoji.style.top = (rect.top - 40) + 'px';
+                emojiContainer.appendChild(emoji);
+                setTimeout(() => emoji.remove(), 1500);
+            }
 
             // Shake button
             noBtn.classList.add('shake');
             setTimeout(() => noBtn.classList.remove('shake'), 500);
 
-            // Grow YES button (capped at 2.5x)
+            // Grow YES button
             yesScale = Math.min(yesScale + 0.15, 2.5);
             yesBtn.style.transform = `scale(${yesScale})`;
 
-            // Calculate new target position away from mouse
+            // Calculate new position
             const rect = noBtn.getBoundingClientRect();
             const btnCenterX = rect.left + rect.width / 2;
             const btnCenterY = rect.top + rect.height / 2;
 
-            // Vector from mouse to button
             const dx = btnCenterX - mouseX;
             const dy = btnCenterY - mouseY;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
-            // Move in opposite direction with some randomness
             const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.5;
             const moveDistance = 200 + Math.random() * 100;
 
@@ -359,6 +485,11 @@
         yesBtn.addEventListener('click', () => {
             questionCard.classList.add('hidden');
             successCard.classList.remove('hidden');
+            successCard.classList.add('show');
+
+            // Random corny message
+            const randomMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
+            successText.innerHTML = randomMessage;
         });
 
         // Touch support
