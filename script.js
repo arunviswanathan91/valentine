@@ -34,19 +34,30 @@ document.addEventListener('DOMContentLoaded', () => {
         yesScale += 0.15;
         yesBtn.style.transform = `scale(${yesScale})`;
 
-        // Calculate movement
+        // Calculate movement - SECURE BOUNDS
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
+
+        // Force a layout update to get correct new size after text change
         const btnRect = noBtn.getBoundingClientRect();
         const btnWidth = btnRect.width;
         const btnHeight = btnRect.height;
 
-        // Keep it strictly within bounds
-        // use 90% of viewport to be safe
-        const padding = 50;
+        // Safety margin to ensure it stays well within screen
+        const margin = 20;
 
-        let newX = Math.random() * (viewportWidth - btnWidth - padding * 2) + padding;
-        let newY = Math.random() * (viewportHeight - btnHeight - padding * 2) + padding;
+        // Calculate max allowed positions
+        const maxX = viewportWidth - btnWidth - margin;
+        const maxY = viewportHeight - btnHeight - margin;
+
+        // Generate random position within safe bounds
+        // Math.max(margin, ...) ensures it doesn't go below the top-left margin
+        let newX = Math.random() * (maxX - margin) + margin;
+        let newY = Math.random() * (maxY - margin) + margin;
+
+        // Clamp values just in case
+        newX = Math.min(Math.max(newX, margin), maxX);
+        newY = Math.min(Math.max(newY, margin), maxY);
 
         noBtn.style.position = 'fixed';
         noBtn.style.left = `${newX}px`;
