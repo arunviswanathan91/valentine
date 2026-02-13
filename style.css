@@ -1,0 +1,145 @@
+:root {
+    --bg-color: #1a1a2e; /* Deep space blue/purple */
+    --text-color: #e94560; /* Soft red/pink */
+    --accent-color: #0f3460; /* Darker blue */
+    --button-yes: #e94560;
+    --button-no: #533483;
+    --white: #ffffff;
+    --alien-green: #a3e635;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--white);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden; /* Prevent scrollbars when button moves */
+    position: relative;
+    background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+    background-size: 550px 550px, 350px 350px, 250px 250px;
+    background-position: 0 0, 40px 60px, 130px 270px;
+    animation: stars 60s linear infinite;
+}
+
+@keyframes stars {
+    0% { background-position: 0 0, 40px 60px, 130px 270px; }
+    100% { background-position: 550px 550px, 590px 610px, 680px 820px; }
+}
+
+.container {
+    text-align: center;
+    z-index: 10;
+    width: 90%;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+h1 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--text-color);
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: #ffd1d1;
+}
+
+.alien-container {
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+    min-height: 60px; /* Space for buttons */
+}
+
+button {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#yes-btn {
+    background-color: var(--button-yes);
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+#yes-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+#no-btn {
+    background-color: var(--white);
+    color: var(--button-no);
+    position: relative; /* Needed for movement */
+    z-index: 100; /* Ensure it stays on top */
+}
+
+/* Success State */
+.hidden {
+    display: none;
+}
+
+#success-container {
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.alien-dance {
+    animation: dance 1s infinite alternate;
+    margin-bottom: 1rem;
+}
+
+@keyframes dance {
+    0% { transform: rotate(-5deg); }
+    100% { transform: rotate(5deg); }
+}
+
+/* Confetti/Hearts handled in JS or simple CSS background overflow */
